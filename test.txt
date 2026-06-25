@@ -1,0 +1,27 @@
+Begin your adventure. Dive into the main narrative and experience the tale that awaits you.
+CONTINUE
+CREDITS
+Close the application and return to your desktop.
+Configure your game. Manage settings for sound, graphics, and controls.
+EXIT
+GAME PLUS
+Meet the team behind the creation of this adventure.
+NEW STORY
+OPTIONS
+PRESS ANY KEY
+STORY
+Aim
+Are you sure you want to reset all settings under the
+Fire
+Interact
+Jump
+Key Remap Canceled by Escape Key
+Key Remap Canceled by Gamepad Key Pressed
+Key Remap Canceled by MouseAndKeyboard Key Pressed
+Main
+Melee
+Others
+Reset Confirm
+Tab
+Unknown Device
+</warning> This is a warning test </>
