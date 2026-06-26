@@ -582,6 +582,36 @@
                                 </div>
                             </div>
                             
+                            <!-- OR Divider -->
+                            <div class="flex items-center gap-3 my-4">
+                                <div class="flex-1 h-px bg-border"></div>
+                                <span class="text-xs text-text-secondary" data-i18n="or">OR</span>
+                                <div class="flex-1 h-px bg-border"></div>
+                            </div>
+                            
+                            <!-- Paste Text Option -->
+                            <div class="paste-text-section">
+                                <button id="pasteTextToggle" class="w-full py-2.5 px-4 rounded-lg border border-border bg-white text-sm text-text-primary hover:bg-canvas transition-colors flex items-center justify-center gap-2">
+                                    <i class="ph ph-clipboard-text"></i>
+                                    <span data-i18n="pasteText">Paste Text Directly</span>
+                                </button>
+                                
+                                <div id="pasteTextPanel" class="hidden mt-3">
+                                    <textarea 
+                                        id="pasteTextArea" 
+                                        class="w-full h-40 p-3 text-sm border border-border rounded-lg resize-none focus:outline-none focus:border-text-primary font-mono"
+                                        placeholder="Paste your text here..."
+                                        spellcheck="false"
+                                    ></textarea>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <span class="text-xs text-text-secondary" id="pasteCharCount">0 characters</span>
+                                        <button id="usePastedTextBtn" class="btn-primary px-4 py-1.5 text-xs font-medium" disabled>
+                                            <span data-i18n="useThisText">Use This Text</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Server hint -->
                             <div class="mt-4 p-3 rounded-lg bg-canvas border border-border">
                                 <div class="flex items-start gap-2">
@@ -884,6 +914,11 @@
         const fileInput = document.getElementById('fileInput');
         const summaryFileName = document.getElementById('summaryFileName');
         const summaryFileStats = document.getElementById('summaryFileStats');
+        const pasteTextToggle = document.getElementById('pasteTextToggle');
+        const pasteTextPanel = document.getElementById('pasteTextPanel');
+        const pasteTextArea = document.getElementById('pasteTextArea');
+        const pasteCharCount = document.getElementById('pasteCharCount');
+        const usePastedTextBtn = document.getElementById('usePastedTextBtn');
         const previewToggle = document.getElementById('previewToggle');
         const previewToggleIcon = document.getElementById('previewToggleIcon');
         const previewToggleText = document.getElementById('previewToggleText');
@@ -933,6 +968,9 @@
                 uploadDesc: 'Select a .txt file to translate',
                 dropFile: 'Drop file here',
                 orClick: 'or click to browse',
+                or: 'OR',
+                pasteText: 'Paste Text Directly',
+                useThisText: 'Use This Text',
                 serverHint: 'Need to start the server?',
                 selectLang: 'Select Languages',
                 selectLangDesc: 'Choose target languages for translation',
@@ -976,6 +1014,9 @@
                 uploadDesc: '选择要翻译的 .txt 文件',
                 dropFile: '拖放文件到此处',
                 orClick: '或点击浏览',
+                or: '或',
+                pasteText: '直接粘贴文本',
+                useThisText: '使用此文本',
                 serverHint: '需要启动服务器？',
                 selectLang: '选择语言',
                 selectLangDesc: '选择目标翻译语言',
@@ -1406,6 +1447,60 @@
             if (e.target !== fileInput) {
                 fileInput.click();
             }
+        });
+        
+        // Paste text toggle
+        pasteTextToggle.addEventListener('click', () => {
+            pasteTextPanel.classList.toggle('hidden');
+            const isVisible = !pasteTextPanel.classList.contains('hidden');
+            pasteTextToggle.innerHTML = isVisible 
+                ? `<i class="ph ph-caret-up"></i><span>${t('pasteText')}</span>`
+                : `<i class="ph ph-clipboard-text"></i><span>${t('pasteText')}</span>`;
+            if (isVisible) {
+                pasteTextArea.focus();
+            }
+        });
+        
+        // Paste text area input
+        pasteTextArea.addEventListener('input', () => {
+            const charCount = pasteTextArea.value.length;
+            pasteCharCount.textContent = `${charCount} ${t('chars')}`;
+            usePastedTextBtn.disabled = charCount === 0;
+        });
+        
+        // Use pasted text button
+        usePastedTextBtn.addEventListener('click', () => {
+            const text = pasteTextArea.value;
+            if (!text.trim()) return;
+            
+            // Create a virtual file object
+            currentFile = {
+                name: 'pasted-text.txt',
+                type: 'text/plain',
+                size: new Blob([text]).size
+            };
+            fileContent = text;
+            
+            // Update summary
+            summaryFileName.textContent = currentFile.name;
+            const lineCount = fileContent.split('\n').length;
+            summaryFileStats.textContent = `${lineCount} ${t('lines')}`;
+            
+            // Render preview
+            renderPreview();
+            
+            // Go to language selection
+            goToStep('languages');
+            updateTranslateButton();
+            
+            showToast(`${t('loaded')}: ${currentFile.name}`, 'success');
+            
+            // Clear the textarea for next time
+            pasteTextArea.value = '';
+            pasteCharCount.textContent = `0 ${t('chars')}`;
+            usePastedTextBtn.disabled = true;
+            pasteTextPanel.classList.add('hidden');
+            pasteTextToggle.innerHTML = `<i class="ph ph-clipboard-text"></i><span>${t('pasteText')}</span>`;
         });
         
         // Language selection
