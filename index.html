@@ -465,6 +465,26 @@
             color: #9F2F2D;
             border-color: #FDEBEC;
         }
+        
+        /* Editable preview textarea */
+        #resultPreviewEditor {
+            line-height: 1.6;
+            tab-size: 4;
+        }
+        
+        #resultPreviewEditor:focus {
+            outline: none;
+        }
+        
+        /* Language select in preview */
+        #previewLangSelect {
+            outline: none;
+            cursor: pointer;
+        }
+        
+        #previewLangSelect:focus {
+            border-color: #2F3437;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -698,6 +718,43 @@
                             </button>
                         </div>
                         
+                        <!-- Editable Preview Section -->
+                        <div class="mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="preview-toggle" id="resultPreviewToggle">
+                                    <i class="ph ph-pencil-simple" id="resultPreviewIcon"></i>
+                                    <span id="resultPreviewText" data-i18n="editPreview">Edit & Preview</span>
+                                </span>
+                                <span class="text-xs text-text-secondary" id="resultPreviewStats"></span>
+                            </div>
+                            
+                            <div id="resultPreviewPanel" class="hidden">
+                                <div class="card overflow-hidden">
+                                    <div class="p-3 border-b border-border bg-canvas flex items-center justify-between">
+                                        <span class="text-xs font-medium text-text-secondary" data-i18n="editablePreview">Editable Preview</span>
+                                        <div class="flex items-center gap-2">
+                                            <select id="previewLangSelect" class="text-xs px-2 py-1 rounded border border-border bg-white">
+                                                <!-- Language options will be inserted here -->
+                                            </select>
+                                            <button id="copyPreviewBtn" class="text-xs px-2 py-1 rounded bg-white border border-border hover:bg-canvas transition-colors flex items-center gap-1">
+                                                <i class="ph ph-copy"></i>
+                                                <span data-i18n="copy">Copy</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="p-0">
+                                        <textarea id="resultPreviewEditor" class="w-full h-64 p-3 font-mono text-xs bg-white border-none resize-none focus:outline-none focus:ring-0" spellcheck="false"></textarea>
+                                    </div>
+                                    <div class="p-2 border-t border-border bg-canvas flex items-center justify-between">
+                                        <span class="text-xs text-text-secondary" id="editorStatus"></span>
+                                        <button id="saveEditBtn" class="text-xs px-3 py-1.5 rounded bg-accent-green-bg text-accent-green-text font-medium hover:opacity-80 transition-opacity">
+                                            <span data-i18n="saveChanges">Save Changes</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Start Over -->
                         <div class="text-center mt-4">
                             <button onclick="resetAll()" class="btn-ghost text-sm py-2 px-4" data-i18n="startNew">
@@ -762,6 +819,8 @@
         let isTranslating = false;
         let serverOnline = false;
         let previewVisible = false;
+        let resultPreviewVisible = false;
+        let currentPreviewLang = null;
         
         // DOM elements
         const serverStatus = document.getElementById('serverStatus');
@@ -789,6 +848,16 @@
         const resultsGrid = document.getElementById('resultsGrid');
         const resultsSummary = document.getElementById('resultsSummary');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const resultPreviewToggle = document.getElementById('resultPreviewToggle');
+        const resultPreviewIcon = document.getElementById('resultPreviewIcon');
+        const resultPreviewText = document.getElementById('resultPreviewText');
+        const resultPreviewPanel = document.getElementById('resultPreviewPanel');
+        const resultPreviewStats = document.getElementById('resultPreviewStats');
+        const previewLangSelect = document.getElementById('previewLangSelect');
+        const resultPreviewEditor = document.getElementById('resultPreviewEditor');
+        const copyPreviewBtn = document.getElementById('copyPreviewBtn');
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        const editorStatus = document.getElementById('editorStatus');
         const progressContainer = document.getElementById('progressContainer');
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
@@ -835,7 +904,14 @@
                 lines: 'lines',
                 online: 'Online',
                 offline: 'Offline',
-                checking: 'Checking'
+                checking: 'Checking',
+                editPreview: 'Edit & Preview',
+                editablePreview: 'Editable Preview',
+                copy: 'Copy',
+                copySuccess: 'Copied',
+                saveChanges: 'Save Changes',
+                saved: 'Saved',
+                chars: 'chars'
             },
             zh: {
                 appName: '翻译工具',
@@ -871,7 +947,14 @@
                 lines: '行',
                 online: '在线',
                 offline: '离线',
-                checking: '检查中'
+                checking: '检查中',
+                editPreview: '编辑与预览',
+                editablePreview: '可编辑预览',
+                copy: '复制',
+                copySuccess: '已复制',
+                saveChanges: '保存修改',
+                saved: '已保存',
+                chars: '字符'
             }
         };
         
@@ -1540,6 +1623,13 @@
             }).join('');
             
             goToStep('results');
+            
+            // Reset preview
+            resultPreviewVisible = false;
+            resultPreviewPanel.classList.add('hidden');
+            resultPreviewToggle.classList.remove('active');
+            resultPreviewIcon.className = 'ph ph-pencil-simple';
+            resultPreviewText.textContent = t('editPreview');
         }
         
         // Download all
@@ -1607,6 +1697,105 @@
         historyPanel.addEventListener('click', (e) => {
             if (e.target === historyPanel) {
                 historyPanel.classList.add('hidden');
+            }
+        });
+        
+        // Result Preview Toggle
+        resultPreviewToggle.addEventListener('click', () => {
+            resultPreviewVisible = !resultPreviewVisible;
+            if (resultPreviewVisible) {
+                resultPreviewPanel.classList.remove('hidden');
+                resultPreviewToggle.classList.add('active');
+                resultPreviewIcon.className = 'ph ph-pencil-simple-slash';
+                resultPreviewText.textContent = t('hidePreview');
+                initResultPreview();
+            } else {
+                resultPreviewPanel.classList.add('hidden');
+                resultPreviewToggle.classList.remove('active');
+                resultPreviewIcon.className = 'ph ph-pencil-simple';
+                resultPreviewText.textContent = t('editPreview');
+            }
+        });
+        
+        // Initialize result preview
+        function initResultPreview() {
+            // Populate language select
+            const langNames = {
+                'zh-CN': 'Chinese', 'ja': 'Japanese', 'ko': 'Korean', 'fr': 'French',
+                'de': 'German', 'es': 'Spanish', 'ru': 'Russian', 'pt': 'Portuguese',
+                'it': 'Italian', 'pl': 'Polish', 'tr': 'Turkish', 'nl': 'Dutch'
+            };
+            
+            previewLangSelect.innerHTML = selectedLangs.map(lang => 
+                `<option value="${lang}">${langNames[lang] || lang}</option>`
+            ).join('');
+            
+            // Set current language and load content
+            currentPreviewLang = selectedLangs[0];
+            previewLangSelect.value = currentPreviewLang;
+            loadPreviewContent(currentPreviewLang);
+        }
+        
+        // Load preview content for selected language
+        function loadPreviewContent(lang) {
+            currentPreviewLang = lang;
+            resultPreviewEditor.value = translations[lang] || '';
+            updateEditorStatus();
+        }
+        
+        // Update editor status (char count)
+        function updateEditorStatus() {
+            const charCount = resultPreviewEditor.value.length;
+            const lineCount = resultPreviewEditor.value.split('\n').length;
+            editorStatus.textContent = `${lineCount} ${t('lines')}, ${charCount} ${t('chars')}`;
+        }
+        
+        // Language select change
+        previewLangSelect.addEventListener('change', (e) => {
+            loadPreviewContent(e.target.value);
+        });
+        
+        // Editor input - update status
+        resultPreviewEditor.addEventListener('input', () => {
+            updateEditorStatus();
+        });
+        
+        // Copy button
+        copyPreviewBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(resultPreviewEditor.value);
+                const originalText = copyPreviewBtn.innerHTML;
+                copyPreviewBtn.innerHTML = `<i class="ph ph-check"></i><span>${t('copySuccess')}</span>`;
+                setTimeout(() => {
+                    copyPreviewBtn.innerHTML = originalText;
+                }, 1500);
+            } catch (err) {
+                showToast('Copy failed', 'error');
+            }
+        });
+        
+        // Save changes button
+        saveEditBtn.addEventListener('click', () => {
+            if (currentPreviewLang) {
+                translations[currentPreviewLang] = resultPreviewEditor.value;
+                
+                // Update history if exists
+                const lastHistory = translationHistory[0];
+                if (lastHistory && lastHistory.languages.includes(currentPreviewLang)) {
+                    lastHistory.translations[currentPreviewLang] = resultPreviewEditor.value;
+                    localStorage.setItem('translationHistory', JSON.stringify(translationHistory));
+                }
+                
+                // Show saved feedback
+                const originalText = saveEditBtn.innerHTML;
+                saveEditBtn.innerHTML = `<span>${t('saved')}</span>`;
+                saveEditBtn.classList.add('opacity-70');
+                setTimeout(() => {
+                    saveEditBtn.innerHTML = originalText;
+                    saveEditBtn.classList.remove('opacity-70');
+                }, 1500);
+                
+                showToast(t('saved'), 'success');
             }
         });
         
