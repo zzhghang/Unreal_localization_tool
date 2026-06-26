@@ -326,6 +326,7 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.15s ease;
+            position: relative;
         }
         
         .lang-btn-compact:hover {
@@ -354,6 +355,24 @@
         
         .lang-btn-compact.active .lang-native {
             color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .lang-btn-compact .lang-code-badge {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #9CA3AF;
+            background: #F3F4F6;
+            padding: 1px 5px;
+            border-radius: 3px;
+            letter-spacing: 0.02em;
+        }
+        
+        .lang-btn-compact.active .lang-code-badge {
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.15);
         }
         
         /* Back button */
@@ -605,66 +624,82 @@
                             
                             <div class="lang-grid-compact mb-5" id="langGrid">
                                 <button class="lang-btn-compact active" data-lang="zh-CN">
+                                    <span class="lang-code-badge">zh-CN</span>
                                     <span class="lang-name">Chinese (S)</span>
                                     <span class="lang-native">简体中文</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="zh-TW">
+                                    <span class="lang-code-badge">zh-TW</span>
                                     <span class="lang-name">Chinese (T)</span>
                                     <span class="lang-native">繁體中文</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="ja">
+                                    <span class="lang-code-badge">ja</span>
                                     <span class="lang-name">Japanese</span>
                                     <span class="lang-native">日本語</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="ko">
+                                    <span class="lang-code-badge">ko</span>
                                     <span class="lang-name">Korean</span>
                                     <span class="lang-native">한국어</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="en">
+                                    <span class="lang-code-badge">en</span>
                                     <span class="lang-name">English</span>
                                     <span class="lang-native">English</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="fr">
+                                    <span class="lang-code-badge">fr</span>
                                     <span class="lang-name">French</span>
                                     <span class="lang-native">Français</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="de">
+                                    <span class="lang-code-badge">de</span>
                                     <span class="lang-name">German</span>
                                     <span class="lang-native">Deutsch</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="es">
+                                    <span class="lang-code-badge">es</span>
                                     <span class="lang-name">Spanish</span>
                                     <span class="lang-native">Español</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="pt">
+                                    <span class="lang-code-badge">pt</span>
                                     <span class="lang-name">Portuguese</span>
                                     <span class="lang-native">Português</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="ru">
+                                    <span class="lang-code-badge">ru</span>
                                     <span class="lang-name">Russian</span>
                                     <span class="lang-native">Русский</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="it">
+                                    <span class="lang-code-badge">it</span>
                                     <span class="lang-name">Italian</span>
                                     <span class="lang-native">Italiano</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="ar">
+                                    <span class="lang-code-badge">ar</span>
                                     <span class="lang-name">Arabic</span>
                                     <span class="lang-native">العربية</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="th">
+                                    <span class="lang-code-badge">th</span>
                                     <span class="lang-name">Thai</span>
                                     <span class="lang-native">ไทย</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="id">
+                                    <span class="lang-code-badge">id</span>
                                     <span class="lang-name">Indonesian</span>
                                     <span class="lang-native">Bahasa</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="vi">
+                                    <span class="lang-code-badge">vi</span>
                                     <span class="lang-name">Vietnamese</span>
                                     <span class="lang-native">Tiếng Việt</span>
                                 </button>
                                 <button class="lang-btn-compact" data-lang="pl">
+                                    <span class="lang-code-badge">pl</span>
                                     <span class="lang-name">Polish</span>
                                     <span class="lang-native">Polski</span>
                                 </button>
